@@ -15,5 +15,8 @@ You can get the executables [here](https://bauxite.itch.io/balldrop).
 
 [Here's a video of it in action.](https://www.youtube.com/watch?v=yhKnGPcZmE4)
 
+# Credits
+Original project created by [Bauxitedev](https://github.com/Bauxitedev). This repository is a fork updated to run on Godot 4.4.1.
+
 # License
-The code is MIT, the sound effects are CC0 (they were found on Freesound).
+The code is MIT (Copyright © 2019 Bauxitedev), the sound effects are CC0 (they were found on Freesound).
