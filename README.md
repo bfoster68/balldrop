@@ -1,5 +1,7 @@
 # balldrop.
-An experimental musical instrument, made with Godot 3.1.
+An experimental musical instrument, made with Godot 4.4.1.
+
+> **Requires Godot 4.4.1 or later — will not run in earlier versions.**
 
 ![Demo](demo/demo.gif)
 
