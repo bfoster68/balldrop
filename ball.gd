@@ -1,84 +1,88 @@
 extends Node2D
 
-var vel = Vector2()
-var prevpos = Vector2()
-var sound
+# === Constants ===
+const GRAVITY: float = 20.0
+const MAX_Y: float = 2000.0
+const RESTITUTION: float = 0.8
+const COLLISION_OFFSET: float = 0.1
 
-var notes = [] # TODO generate this globally
+# === Variables ===
+var vel: Vector2 = Vector2.ZERO
+var prevpos: Vector2 = Vector2.ZERO
+var sound: String = "bell" # Default; should be assigned dynamically as needed
+var notes: Array = [] # Make sure this is populated before running
+
+var colliders: Array = []
+
+@onready var spr = $spr
+@onready var parts = $parts
 
 func _ready():
-	
 	prevpos = position
-	
-	var goalcol = Color(0,0,0)
-	
-	match sound:
-		
-		"bell": goalcol = Color(0,1,1)
-		"kick": goalcol = Color(1,0,0)
-		"snare": goalcol = Color(0,1,0)
-		"laser": goalcol = Color(1,1,0)
-		
-	$spr.modulate = goalcol
-	goalcol *= 0.3
-	
-	$parts.modulate = goalcol
-	
-	
-		
+	colliders = get_tree().get_nodes_in_group("line")
 
-func _physics_process(delta):
-	
-	
-	if position.y > 2000:
+	var goalcol: Color
+
+	match sound:
+		"bell":
+			goalcol = Color(0, 1, 1)
+		"kick":
+			goalcol = Color(1, 0, 0)
+		"snare":
+			goalcol = Color(0, 1, 0)
+		"laser":
+			goalcol = Color(1, 1, 0)
+		_:
+			goalcol = Color(1, 1, 1)
+
+	spr.modulate = goalcol
+	parts.modulate = goalcol * 0.3
+
+
+func _physics_process(delta: float) -> void:
+	if position.y > MAX_Y:
 		queue_free()
-	
-	vel += Vector2(0, 20 * 1) * delta
+		return
+
+	# Basic gravity and motion
+	vel += Vector2.DOWN * GRAVITY * delta
 	prevpos = position
 	position += vel
-	
-	# manual collision for now
-	
-	var colliders = get_tree().get_nodes_in_group("line")
-	
+
+	# Collision with custom line segments
 	for c in colliders:
-		
+		if not is_instance_valid(c):
+			continue
 		var p1 = c.a
 		var p2 = c.b
-		var norm = (p2-p1).tangent().normalized()
-		var coll = Geometry.segment_intersects_segment_2d(prevpos, position, p1, p2)
-		
-		if coll != null:
-			# print(norm)
-			
+		var norm = (p2 - p1).orthogonal().normalized()
+
+		var coll = Geometry2D.segment_intersects_segment(prevpos, position, p1, p2)
+		if coll:
 			if vel.length() > 1.0:
-					
 				var pitch = vel.length()
-				
-				if sound == "bell":
-					pass
-				else:
+				if sound != "bell":
 					pitch *= 2
-				
-				pitch = notes[round(pitch)] #pow(2, round(log(pitch) / log(2)) / 3.0)
-				
-				#pitch *= round(rand_range(1,7))				
-				pitch += rand_range(-1,1)*0.002
-				AudioPlayer.play_at(sound, position, pitch)
-				
-			
-			
+
+				# Index safety check
+				if notes.size() > 0:
+					var index = clamp(round(pitch), 0, notes.size() - 1)
+					pitch = notes[index]
+					pitch += randf_range(-1, 1) * 0.002
+					AudioPlayer.play_at(sound, position, pitch)
+
+			# Flip norm to oppose velocity so the pushout moves the ball back
+			# to the side it came from. reflect() and slide() are invariant
+			# to sign of norm, so only the pushout on the next line is affected.
 			if vel.dot(norm) > 0:
 				norm = -norm
-			
-			var restitution = 0.8
-			vel = (-vel.reflect(norm)).linear_interpolate(vel.slide(norm), 1-restitution)
-			
-			position = coll + norm * 0.1
-			
-			var shockwave = preload("res://shockwave.tscn").instance()
+
+			# Reflect and slide with restitution
+			vel = (-vel.reflect(norm)).lerp(vel.slide(norm), 1.0 - RESTITUTION)
+			position = coll + norm * COLLISION_OFFSET
+
+			# Spawn shockwave
+			var shockwave = preload("res://shockwave.tscn").instantiate()
 			shockwave.position = position
-			shockwave.modulate = $spr.modulate
+			shockwave.modulate = spr.modulate
 			get_parent().add_child(shockwave)
-			
-			

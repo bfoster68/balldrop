@@ -1,0 +1,48 @@
+[gd_scene load_steps=3 format=3 uid="uid://cbadbsf7wr2j1"]
+
+[ext_resource type="Script" path="res://title.gd" id="1_title"]
+[ext_resource type="FontFile" path="res://fonts/WireOne.ttf" id="2_font"]
+
+[node name="title" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_title")
+
+[node name="bg" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.02, 0.02, 0.04, 1)
+
+[node name="center" type="CenterContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="vbox" type="VBoxContainer" parent="center"]
+custom_minimum_size = Vector2(480, 0)
+theme_override_constants/separation = 32
+
+[node name="TitleLabel" type="Label" parent="center/vbox"]
+text = "Ball Drop"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 96
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="ResolutionRow" type="HBoxContainer" parent="center/vbox"]
+theme_override_constants/separation = 16
+
+[node name="ResLabel" type="Label" parent="center/vbox/ResolutionRow"]
+size_flags_vertical = 4
+text = "Resolution"
+theme_override_font_sizes/font_size = 22
+
+[node name="ResOption" type="OptionButton" parent="center/vbox/ResolutionRow"]
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(240, 0)
+theme_override_font_sizes/font_size = 22
+
+[node name="PlayButton" type="Button" parent="center/vbox"]
+custom_minimum_size = Vector2(0, 56)
+text = "Play"
+theme_override_font_sizes/font_size = 30
+theme_override_fonts/font = ExtResource("2_font")

@@ -1,2 +1,5 @@
-.import
-.import
+# Godot generated files
+.godot/
+
+# Claude Code session files
+.claude/

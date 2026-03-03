@@ -1,32 +1,28 @@
 extends StaticBody2D
 
-var a = Vector2()
-var b = Vector2()
+var a: Vector2
+var b: Vector2
 
-func set_ends(p1, p2):
-	
+@onready var shape: CollisionShape2D = $shape
+@onready var line2d: Line2D = $spr
+
+func set_ends(p1: Vector2, p2: Vector2) -> void:
 	a = p1
 	b = p2
-	
-	# update the capsule
-	
-	$shape.shape.height = a.distance_to(b)
-	$shape.position = (a + b) / 2
-	$shape.rotation = a.angle_to_point(b) + PI / 2
-	
-	# update the sprite
-	# (using a sprite so we get anti aliasing)
-	
-	$spr.position = (a + b) / 2
-	$spr.rotation = $shape.rotation + PI / 2
-	$spr.scale = Vector2(a.distance_to(b), 1)
-	
-	
 
+	var distance = a.distance_to(b)
+	var center = (a + b) * 0.5
+	var angle = a.angle_to_point(b) + PI / 2
 
-func _on_line_input_event(viewport, event, shape_idx):
-	
-	# delete line when right clicked
-	if event is InputEventMouseButton:
-		if event.pressed and event.button_index == BUTTON_RIGHT:
-			queue_free()
+	if shape and shape.shape is CapsuleShape2D:
+		var capsule := shape.shape as CapsuleShape2D
+		capsule.height = distance
+		shape.position = center
+		shape.rotation = angle
+	else:
+		push_error("Missing or invalid shape.")
+
+	if line2d:
+		line2d.points = PackedVector2Array([a, b])
+	else:
+		push_error("Missing line node.")
