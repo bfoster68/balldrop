@@ -15,12 +15,19 @@ const RESOLUTIONS: Array[Vector2i] = [
 
 @onready var res_option: OptionButton = $center/vbox/ResolutionRow/ResOption
 
+var _selected_size: Vector2i = Vector2i.ZERO
+var _selected_fullscreen: bool = false
+
 func _ready() -> void:
 	var screen_size := DisplayServer.screen_get_size()
 	var win_size := DisplayServer.window_get_size()
 	var mode := DisplayServer.window_get_mode()
 	var is_fullscreen := mode == DisplayServer.WINDOW_MODE_FULLSCREEN \
 		or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+
+	_selected_fullscreen = is_fullscreen
+	if not is_fullscreen:
+		_selected_size = Vector2i(win_size)
 
 	var current_index := 0
 	for res in RESOLUTIONS:
@@ -41,16 +48,27 @@ func _ready() -> void:
 	res_option.item_selected.connect(_on_res_option_item_selected)
 	$center/vbox/PlayButton.pressed.connect(_on_play_pressed)
 
-func _on_res_option_item_selected(index: int) -> void:
-	var meta: Variant = res_option.get_item_metadata(index)
-	if meta == Vector2i(-1, -1):
+func _apply_resolution() -> void:
+	if _selected_fullscreen:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	else:
-		var res := meta as Vector2i
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		DisplayServer.window_set_size(res)
+		DisplayServer.window_set_size(_selected_size)
 		var screen_size := DisplayServer.screen_get_size()
-		DisplayServer.window_set_position((screen_size - res) / 2)
+		DisplayServer.window_set_position((screen_size - _selected_size) / 2)
+
+func _on_res_option_item_selected(index: int) -> void:
+	var meta: Variant = res_option.get_item_metadata(index)
+	if meta is Vector2i and meta == Vector2i(-1, -1):
+		_selected_fullscreen = true
+	elif meta is Vector2i:
+		_selected_fullscreen = false
+		_selected_size = meta
+	_apply_resolution()
 
 func _on_play_pressed() -> void:
+	# Re-apply to ensure the resolution is set, then wait for it to take effect
+	_apply_resolution()
+	await get_tree().process_frame
+	await get_tree().process_frame
 	get_tree().change_scene_to_file("res://main.tscn")

@@ -1,6 +1,6 @@
 extends Node2D
 
-const MAX_BALLS: int = 200
+const MAX_BALLS_PER_EMITTER: int = 50
 
 @export_enum("bell", "kick", "snare", "laser")
 var sound: String = "bell"
@@ -10,6 +10,7 @@ var sound: String = "bell"
 var angle := 0
 var cached_notes: Array = []
 var _container: Node = null
+var _ball_count := 0
 
 func _ready():
 	cached_notes = gen_notes()
@@ -23,7 +24,7 @@ func _ready():
 func _on_timer_timeout() -> void:
 	if not is_instance_valid(_container):
 		return
-	if _container.get_child_count() >= MAX_BALLS:
+	if _ball_count >= MAX_BALLS_PER_EMITTER:
 		return
 
 	var ball = BallScene.instantiate()
@@ -31,9 +32,14 @@ func _on_timer_timeout() -> void:
 	ball.sound = sound
 	ball.vel = Vector2(4, 0).rotated(deg_to_rad(angle + 45))
 	ball.notes = cached_notes
+	ball.tree_exiting.connect(_on_ball_freed)
 	_container.add_child(ball)
+	_ball_count += 1
 
 	angle = (angle + 90) % 360
+
+func _on_ball_freed() -> void:
+	_ball_count -= 1
 
 
 func gen_notes() -> Array:

@@ -30,10 +30,9 @@ script = ExtResource("1")
 modulate = Color(0.21875, 0.21875, 0.21875, 0.21)
 material = SubResource("1")
 amount = 80
-visibility_rect = Rect2(-1000, -1000, 2000, 2000)
-local_coords = false
-process_material = SubResource("4")
 texture = ExtResource("2")
+visibility_rect = Rect2(-1000, -1000, 2000, 2000)
+process_material = SubResource("4")
 
 [node name="spr" type="Sprite2D" parent="."]
 modulate = Color(1, 0.509363, 0.509363, 1)

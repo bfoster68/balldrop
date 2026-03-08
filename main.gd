@@ -14,6 +14,10 @@ var last_mouse_pos: Vector2
 @onready var EmitterScene: PackedScene = preload("res://emitter.tscn")
 
 func _ready() -> void:
+	# Use viewport rect — it always matches the actual rendering area
+	var vp_size := get_viewport().get_visible_rect().size
+	camera.position = vp_size / 2.0
+
 	await get_tree().create_timer(5).timeout
 
 	spawn_emitter("bell", Vector2(0.3, 0.2))
@@ -24,7 +28,7 @@ func _ready() -> void:
 func spawn_emitter(sound_name: String, pos: Vector2) -> void:
 	var emitter = EmitterScene.instantiate()
 	emitter.sound = sound_name
-	emitter.position = pos * Vector2(get_window().size)
+	emitter.position = pos * get_viewport().get_visible_rect().size
 	add_child(emitter)
 
 func _process(delta: float) -> void:
