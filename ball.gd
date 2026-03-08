@@ -5,6 +5,7 @@ const GRAVITY: float = 20.0
 const MAX_Y: float = 2000.0
 const RESTITUTION: float = 0.8
 const COLLISION_OFFSET: float = 0.1
+const ShockwaveScene: PackedScene = preload("res://shockwave.tscn")
 
 # === Variables ===
 var vel: Vector2 = Vector2.ZERO
@@ -49,18 +50,25 @@ func _physics_process(delta: float) -> void:
 	prevpos = position
 	position += vel
 
-	# Collision with custom line segments
-	for c in colliders:
+	# Collision with custom line segments.
+	# Iterates with an index so invalid entries can be pruned in-place
+	# rather than accumulating as dead weight across future frames.
+	var i := 0
+	while i < colliders.size():
+		var c = colliders[i]
 		if not is_instance_valid(c):
+			colliders.remove_at(i)
 			continue
+
 		var p1 = c.a
 		var p2 = c.b
 		var norm = (p2 - p1).orthogonal().normalized()
 
 		var coll = Geometry2D.segment_intersects_segment(prevpos, position, p1, p2)
 		if coll:
-			if vel.length() > 1.0:
-				var pitch = vel.length()
+			var speed := vel.length()
+			if speed > 1.0:
+				var pitch := speed
 				if sound != "bell":
 					pitch *= 2
 
@@ -82,7 +90,9 @@ func _physics_process(delta: float) -> void:
 			position = coll + norm * COLLISION_OFFSET
 
 			# Spawn shockwave
-			var shockwave = preload("res://shockwave.tscn").instantiate()
+			var shockwave = ShockwaveScene.instantiate()
 			shockwave.position = position
 			shockwave.modulate = spr.modulate
 			get_parent().add_child(shockwave)
+
+		i += 1

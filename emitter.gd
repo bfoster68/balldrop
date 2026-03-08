@@ -9,18 +9,21 @@ var sound: String = "bell"
 
 var angle := 0
 var cached_notes: Array = []
+var _container: Node = null
 
 func _ready():
 	cached_notes = gen_notes()
 
-func _on_timer_timeout() -> void:
 	var containers = get_tree().get_nodes_in_group("ball_container")
 	if containers.size() == 0:
 		push_error("No node found in 'ball_container' group!")
-		return
+	else:
+		_container = containers[0]
 
-	var container = containers[0]
-	if container.get_child_count() >= MAX_BALLS:
+func _on_timer_timeout() -> void:
+	if not is_instance_valid(_container):
+		return
+	if _container.get_child_count() >= MAX_BALLS:
 		return
 
 	var ball = BallScene.instantiate()
@@ -28,7 +31,7 @@ func _on_timer_timeout() -> void:
 	ball.sound = sound
 	ball.vel = Vector2(4, 0).rotated(deg_to_rad(angle + 45))
 	ball.notes = cached_notes
-	container.add_child(ball)
+	_container.add_child(ball)
 
 	angle = (angle + 90) % 360
 
